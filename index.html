@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Diet & Fitness System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f4f0; color: #222; }
+
+  header { background: #2e7d32; color: white; text-align: center; padding: 24px; }
+  header h1 { font-size: 26px; }
+  header p  { font-size: 14px; margin-top: 4px; opacity: 0.85; }
+
+  .container { max-width: 700px; margin: 30px auto; padding: 0 16px; }
+
+  .card { background: white; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .card h2 { color: #2e7d32; margin-bottom: 16px; font-size: 18px; }
+
+  label { display: block; margin-bottom: 5px; font-size: 14px; color: #555; font-weight: bold; }
+  input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; margin-bottom: 14px; }
+  button { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 16px; cursor: pointer; }
+  button:hover { background: #1b5e20; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Result section */
+  #result { display: none; }
+
+  .bmi-box { text-align: center; padding: 20px; border-radius: 10px; margin-bottom: 16px; }
+  .bmi-box .num { font-size: 48px; font-weight: bold; }
+  .bmi-box .cat { font-size: 18px; margin-top: 4px; }
+
+  .info-row { display: flex; justify-content: space-between; background: #f9f9f9; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; font-size: 14px; }
+  .info-row span:last-child { font-weight: bold; color: #2e7d32; }
+
+  .meal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .meal { background: #f1f8f1; border-left: 4px solid #2e7d32; border-radius: 6px; padding: 12px; }
+  .meal .name { font-weight: bold; font-size: 14px; }
+  .meal .cal  { color: #2e7d32; font-size: 13px; margin-top: 4px; }
+  .meal .mac  { color: #777; font-size: 12px; margin-top: 2px; }
+
+  .workout-list { list-style: none; }
+  .workout-list li { display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px; background: #f1f8f1; font-size: 14px; }
+  .workout-list li span { color: #2e7d32; font-weight: bold; }
+
+  .tip-list { list-style: none; }
+  .tip-list li { padding: 6px 0; font-size: 14px; color: #444; border-bottom: 1px solid #eee; }
+  .tip-list li::before { content: "✓ "; color: #2e7d32; font-weight: bold; }
+
+  @media(max-width:500px){ .grid, .meal-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Smart Diet & Fitness System</h1>
+  <p>Enter your details to get personalized recommendations</p>
+</header>
+
+<div class="container">
+
+  <!-- INPUT FORM -->
+  <div class="card" id="form-card">
+    <h2>📋 Your Profile</h2>
+
+    <label>Full Name</label>
+    <input type="text" id="name" placeholder="Enter your name"/>
+
+    <div class="grid">
+      <div>
+        <label>Age</label>
+        <input type="number" id="age" placeholder="25"/>
+      </div>
+      <div>
+        <label>Gender</label>
+        <select id="gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div>
+        <label>Weight (kg)</label>
+        <input type="number" id="weight" placeholder="70"/>
+      </div>
+      <div>
+        <label>Height (cm)</label>
+        <input type="number" id="height" placeholder="175"/>
+      </div>
+    </div>
+
+    <label>Your Goal</label>
+    <select id="goal">
+      <option value="lose">🎯 Lose Weight</option>
+      <option value="gain">💪 Gain Muscle</option>
+      <option value="maintain">⚖️ Maintain Weight</option>
+    </select>
+
+    <label>Fitness Level</label>
+    <select id="fitness">
+      <option value="beginner">Beginner</option>
+      <option value="intermediate">Intermediate</option>
+      <option value="advanced">Advanced</option>
+    </select>
+
+    <button onclick="generate()">Generate My Plan →</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="result">
+
+    <!-- BMI -->
+    <div class="card">
+      <h2>⚖️ Your BMI Result</h2>
+      <div class="bmi-box" id="bmi-box">
+        <div class="num" id="bmi-num">--</div>
+        <div class="cat" id="bmi-cat">--</div>
+      </div>
+      <div class="info-row"><span>Daily Calorie Target</span><span id="cal-target">--</span></div>
+      <div class="info-row"><span>Goal</span><span id="goal-label">--</span></div>
+      <div class="info-row"><span>Fitness Level</span><span id="fit-label">--</span></div>
+    </div>
+
+    <!-- DIET -->
+    <div class="card">
+      <h2>🥗 Recommended Meals</h2>
+      <div class="meal-grid" id="meal-grid"></div>
+    </div>
+
+    <!-- FITNESS -->
+    <div class="card">
+      <h2>💪 Workout Plan</h2>
+      <ul class="workout-list" id="workout-list"></ul>
+    </div>
+
+    <!-- TIPS -->
+    <div class="card">
+      <h2>💡 Health Tips</h2>
+      <ul class="tip-list" id="tips-list"></ul>
+    </div>
+
+    <div class="card">
+      <h2>💧 Water Intake</h2>
+      <div class="info-row"><span>Daily Water Target</span><span id="water-target">--</span></div>
+      <div class="info-row"><span>Glasses per Day (250ml)</span><span id="water-glasses">--</span></div>
+      <ul class="tip-list" style="margin-top:10px;">
+        <li>Drink a glass of water when you wake up</li>
+        <li>Drink water before every meal</li>
+        <li>Carry a water bottle with you all day</li>
+        <li>Drink more if you exercise or its hot</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>😴 Sleep Recommendation</h2>
+      <div class="info-row"><span>Recommended Sleep</span><span id="sleep-hours">--</span></div>
+      <div class="info-row"><span>Best Bedtime</span><span>10:00 PM – 11:00 PM</span></div>
+      <div class="info-row"><span>Best Wake Time</span><span id="wake-time">--</span></div>
+      <ul class="tip-list" style="margin-top:10px;">
+        <li>Avoid phone screens 30 min before bed</li>
+        <li>Keep your room cool and dark</li>
+        <li>Sleep and wake at the same time daily</li>
+        <li>Avoid caffeine after 3:00 PM</li>
+      </ul>
+    </div>
+
+    <button onclick="reset()" style="margin-bottom:30px;background:#555;">← Start Over</button>
+  </div>
+
+</div>
+
+<script>
+const MEALS = {
+  lose: [
+    { name:"Grilled Chicken Salad", cal:320, mac:"35g protein · 12g carbs" },
+    { name:"Vegetable Soup",        cal:180, mac:"8g protein · 28g carbs"  },
+    { name:"Greek Yogurt Bowl",     cal:240, mac:"20g protein · 25g carbs" },
+    { name:"Salmon & Veggies",      cal:380, mac:"42g protein · 10g carbs" },
+  ],
+  gain: [
+    { name:"Chicken Rice Bowl",     cal:620, mac:"52g protein · 68g carbs" },
+    { name:"Egg & Avocado Toast",   cal:480, mac:"22g protein · 38g carbs" },
+    { name:"Beef Stir Fry",         cal:540, mac:"44g protein · 40g carbs" },
+    { name:"Protein Smoothie",      cal:420, mac:"38g protein · 44g carbs" },
+  ],
+  maintain: [
+    { name:"Mediterranean Bowl",    cal:440, mac:"28g protein · 48g carbs" },
+    { name:"Veggie Stir Fry",       cal:360, mac:"18g protein · 42g carbs" },
+    { name:"Quinoa Salad",          cal:390, mac:"16g protein · 52g carbs" },
+    { name:"Baked Fish Tacos",      cal:410, mac:"32g protein · 38g carbs" },
+  ],
+};
+
+const WORKOUTS = {
+  beginner: [
+    { name:"Morning Walk",       detail:"30 min",    cal:"150 kcal" },
+    { name:"Bodyweight Squats",  detail:"3×15 reps", cal:"80 kcal"  },
+    { name:"Push-ups",           detail:"3×10 reps", cal:"60 kcal"  },
+    { name:"Plank Hold",         detail:"3×30 sec",  cal:"40 kcal"  },
+  ],
+  intermediate: [
+    { name:"5K Run",             detail:"30 min",    cal:"300 kcal" },
+    { name:"Dumbbell Lunges",    detail:"4×12 reps", cal:"120 kcal" },
+    { name:"Pull-ups",           detail:"4×8 reps",  cal:"100 kcal" },
+    { name:"HIIT Circuit",       detail:"20 min",    cal:"250 kcal" },
+  ],
+  advanced: [
+    { name:"Interval Sprints",   detail:"30 min",    cal:"400 kcal" },
+    { name:"Barbell Deadlift",   detail:"5×5 reps",  cal:"180 kcal" },
+    { name:"Weighted Pull-ups",  detail:"5×6 reps",  cal:"140 kcal" },
+    { name:"Battle Ropes",       detail:"5×30 sec",  cal:"200 kcal" },
+  ],
+};
+
+const TIPS = {
+  lose:    ["Eat 300–500 kcal below your daily target","Drink 2–3 liters of water daily","Prioritize protein to keep you full","Avoid fried food and sugary drinks"],
+  gain:    ["Eat 300–500 kcal above your daily target","Target 1.6g protein per kg body weight","Eat carbs before and after workouts","Don't skip meals — consistency is key"],
+  maintain:["Balance your plate: protein + carbs + fat","Eat at consistent times each day","Include vegetables in every meal","Weigh yourself weekly to stay on track"],
+};
+
+function calcBMI(w, h) { return (w / ((h / 100) ** 2)).toFixed(1); }
+
+function calcCalories(w, h, age, gender, goal) {
+  let bmr = gender === "male"
+    ? 10 * w + 6.25 * h - 5 * age + 5
+    : 10 * w + 6.25 * h - 5 * age - 161;
+  let tdee = Math.round(bmr * 1.55); // moderate activity
+  if (goal === "lose") return tdee - 500;
+  if (goal === "gain") return tdee + 300;
+  return tdee;
+}
+
+function generate() {
+  const name    = document.getElementById("name").value.trim();
+  const age     = +document.getElementById("age").value;
+  const gender  = document.getElementById("gender").value;
+  const weight  = +document.getElementById("weight").value;
+  const height  = +document.getElementById("height").value;
+  const goal    = document.getElementById("goal").value;
+  const fitness = document.getElementById("fitness").value;
+
+  if (!name || age <= 0 || weight <= 0 || height <= 0) {
+    alert("Please fill in all fields with valid values!");
+    return;
+  }
+
+  // BMI
+  const bmi = calcBMI(weight, height);
+  const b = parseFloat(bmi);
+  let cat, color;
+  if      (b < 18.5) { cat = "Underweight"; color = "#1565c0"; }
+  else if (b < 25)   { cat = "Normal ✅";   color = "#2e7d32"; }
+  else if (b < 30)   { cat = "Overweight";  color = "#e65100"; }
+  else               { cat = "Obese";        color = "#c62828"; }
+
+  document.getElementById("bmi-num").textContent = bmi;
+  document.getElementById("bmi-cat").textContent = cat;
+  document.getElementById("bmi-box").style.background = color + "18";
+  document.getElementById("bmi-box").style.color = color;
+
+  const cals = calcCalories(weight, height, age, gender, goal);
+  const goalNames = { lose:"Lose Weight", gain:"Gain Muscle", maintain:"Maintain" };
+  document.getElementById("cal-target").textContent = cals + " kcal / day";
+  document.getElementById("goal-label").textContent  = goalNames[goal];
+  document.getElementById("fit-label").textContent   = fitness.charAt(0).toUpperCase() + fitness.slice(1);
+
+  // Meals
+  document.getElementById("meal-grid").innerHTML = MEALS[goal].map(m => `
+    <div class="meal">
+      <div class="name">${m.name}</div>
+      <div class="cal">🔥 ${m.cal} kcal</div>
+      <div class="mac">${m.mac}</div>
+    </div>
+  `).join("");
+
+  // Workouts
+  document.getElementById("workout-list").innerHTML = WORKOUTS[fitness].map(w => `
+    <li>${w.name} <span>${w.cal}</span></li>
+  `).join("");
+
+  // Tips
+  document.getElementById("tips-list").innerHTML = TIPS[goal].map(t => `
+    <li>${t}</li>
+  `).join("");
+
+  // Water
+  const water = (weight * 0.033).toFixed(1);
+  const glasses = Math.round(water * 4);
+  document.getElementById("water-target").textContent = water + " liters";
+  document.getElementById("water-glasses").textContent = glasses + " glasses";
+
+  // Sleep
+  let sleepHours, wakeTime;
+  if (age < 18)       { sleepHours = "8–10 hours"; wakeTime = "6:00 AM – 7:00 AM"; }
+  else if (age <= 64) { sleepHours = "7–9 hours";  wakeTime = "6:00 AM – 7:00 AM"; }
+  else                { sleepHours = "7–8 hours";  wakeTime = "6:00 AM – 7:00 AM"; }
+  if (goal === "gain") { sleepHours = "8–9 hours (muscle recovery)"; }
+  document.getElementById("sleep-hours").textContent = sleepHours;
+  document.getElementById("wake-time").textContent = wakeTime;
+
+  document.getElementById("form-card").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  window.scrollTo(0, 0);
+}
+
+function reset() {
+  document.getElementById("form-card").style.display = "block";
+  document.getElementById("result").style.display = "none";
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
